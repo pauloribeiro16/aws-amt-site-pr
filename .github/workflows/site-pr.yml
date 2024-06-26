@@ -36,3 +36,4 @@ jobs:
           echo "${{ secrets.AWS_AMT_VM_KEY }}" > id.pem
           chmod 400 id.pem
           ls
+          ssh -i chave.pem ubuntu@ec2-54-224-159-11.compute-1.amazonaws.com -c "cd /var/www/html/pr && ls -all"
