@@ -1,4 +1,4 @@
-name: CI
+name: CI\CD features
 
 on:
   push:
@@ -42,6 +42,6 @@ jobs:
         run: |
           echo "${{ secrets.AWS_AMT_VM_KEY }}" > chave.pem
           chmod 400 chave.pem
-          ssh -o StrictHostKeyChecking=no -i chave.pem ubuntu@ec2-54-224-159-11.compute-1.amazonaws.com -t "cd /var/www/html/pr/aws-amt-site-pr/; git chekout quality; ls -la"
-          git pull
+          ssh -o StrictHostKeyChecking=no -i chave.pem ubuntu@ec2-54-224-159-11.compute-1.amazonaws.com -t "cd /var/www/html/pr/aws-amt-site-pr/; sudo git chekout quality; ls -la"
+          sudo git pull
           ls -la 
