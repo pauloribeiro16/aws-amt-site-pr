@@ -1,0 +1,27 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - features/*
+
+jobs:
+  merge-to-quality:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v2
+
+      - name: Set up Git
+        run: |
+          git config --global user.name 'Your Name'
+          git config --global user.email 'your-email@example.com'
+
+      - name: Merge branch to quality
+        run: |
+          git checkout quality
+          git pull origin quality
+          git merge ${{ github.ref }} --no-ff --no-edit
+          git push origin quality
+
