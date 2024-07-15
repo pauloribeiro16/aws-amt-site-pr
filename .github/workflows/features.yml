@@ -1,27 +1,46 @@
-name: CI Pipeline
+name: CI
 
 on:
   push:
     branches:
-      - features/*
+      - 'features/*'
+  workflow_dispatch:
 
 jobs:
-  merge-to-quality:
+  merge:
     runs-on: ubuntu-latest
-    
+    environment: Development
+
     steps:
-      - name: Check out the repository
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Set up Git
         run: |
           git config --global user.name 'Your Name'
           git config --global user.email 'your-email@example.com'
 
-      - name: Merge branch to quality
-        run: |
-          git checkout quality
-          git pull origin quality
-          git merge ${{ github.ref }} --no-ff --no-edit
-          git push origin quality
+      - name: Fetch all branches
+        run: git fetch --all
 
+      - name: Extract branch name
+        id: extract_branch
+        run: echo "branch_name=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+
+      - name: Merge to quality
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+        run: |
+          git checkout quality || git checkout -b quality origin/quality
+          git pull origin quality
+          git merge ${{ env.branch_name }} --no-ff --no-edit --allow-unrelated-histories || git merge --abort
+          git push https://x-access-token:${{ secrets.TOKEN }}@github.com/pauloribeiro16/aws-amt-site-pr.git quality
+
+      - name: Run a one-line script
+        run: echo paulo ribeiro
+
+      - name: Run a multi-line script
+        run: |
+          echo "${{ secrets.AWS_AMT_VM_KEY }}" > chave.pem
+          chmod 400 chave.pem
+          ssh -o StrictHostKeyChecking=no -i chave.pem ubuntu@ec2-54-224-159-11.compute-1.amazonaws.com -t "cd /var/www/html/pr/aws-amt-site-pr/; ls -all"
+          git pull
