@@ -1,4 +1,4 @@
-name: CI
+name: CI/CD Quality
 
 # Controls when the workflow will run
 on:
@@ -29,6 +29,10 @@ jobs:
           git config --global user.name 'pauloribeiro16'
           git config --global user.email 'paulinhovsc16@gmail.com'
 
+      # Fetch all branches
+      - name: Fetch all branches
+        run: git fetch --all
+
       # Extract the branch name from the ref
       - name: Extract branch name
         id: extract_branch
@@ -39,7 +43,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
         run: |
-          git checkout quality
+          git checkout quality || git checkout -b quality origin/quality
           git pull origin quality
           git merge ${{ env.branch_name }} --no-ff --no-edit
           git push origin quality
