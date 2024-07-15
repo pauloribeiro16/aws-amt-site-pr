@@ -1,58 +1,52 @@
-name: CI/CD Quality
+name: CI
 
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on push events but only for branches matching "features/*"
   push:
     branches:
       - 'features/*'
-  
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "merge"
   merge:
-    # The type of runner that the job will run on
     runs-on: ubuntu-latest
     environment: Development
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v4
 
-      # Set up Git configuration
       - name: Set up Git
         run: |
           git config --global user.name 'pauloribeiro16'
           git config --global user.email 'paulinhovsc16@gmail.com'
 
-      # Fetch all branches
       - name: Fetch all branches
         run: git fetch --all
 
-      # Extract the branch name from the ref
       - name: Extract branch name
         id: extract_branch
         run: echo "branch_name=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
 
-      # Merge the feature branch into the quality branch
       - name: Merge to quality
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
         run: |
           git checkout quality || git checkout -b quality origin/quality
           git pull origin quality
-          git merge ${{ env.branch_name }} --no-ff --no-edit --allow-unrelated-histories
-          git push origin quality
+          git merge ${{ env.branch_name }} --no-ff --no-edit --allow-unrelated-histories || git merge --abort
+          git push https://x-access-token:${{ secrets.TOKEN }}@github.com/pauloribeiro16/aws-amt-site-pr.git quality
 
-      # Runs a single command using the runner's shell
+      - name: Verify merged files
+        run: |
+          if [ -f "produtos.html" ]; then
+            echo "produtos.html exists in quality branch"
+          else
+            echo "produtos.html does not exist in quality branch"
+            exit 1
+          fi
+
       - name: Run a one-line script
         run: echo paulo ribeiro
 
-      # Runs a set of commands using the runner's shell
       - name: Run a multi-line script
         run: |
           echo "${{ secrets.AWS_AMT_VM_KEY }}" > chave.pem
