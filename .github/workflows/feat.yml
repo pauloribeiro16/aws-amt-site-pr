@@ -1,4 +1,4 @@
-name: CI\CD features
+name: CI\CD features - v1
 
 on:
   push:
