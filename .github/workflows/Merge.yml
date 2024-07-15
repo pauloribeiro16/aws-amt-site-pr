@@ -1,0 +1,32 @@
+name: Merge to Quality and Deploy
+
+on:  
+  push:
+    branches: [ "features/*" ]
+  pull_request:
+    branches: [ "features/*" ]
+
+
+jobs:
+  merge-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Merge to quality
+      run: |
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        git checkout quality
+        git merge ${{ github.ref }} --no-ff -m "Merge ${{ github.ref }} into quality"
+        git push origin quality
+
+    - name: Deploy to EC2
+      env:
+        AWS_AMT_VM_KEY: ${{ secrets.AWS_AMT_VM_KEY }}
+      run: |
+        echo "$AWS_AMT_VM_KEY" > chave.pem
+        chmod 400 chave.pem
+        ssh -o StrictHostKeyChecking=no -i chave.pem ubuntu@ec2-54-224-159-11.compute-1.amazonaws.com -t "cd /var/www/html/pr/aws-amt-site-pr/; sudo git pull; ls -la"
